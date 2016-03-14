@@ -23,19 +23,23 @@ bool gReverseEnabled = false;
 const char* RC_ADDRESS = "http://192.168.1.243:8080/CommandServer/currentCommand";
 
 #define DRIVE_MOTOR_GPIO 31 //GP44
+#define REVERSE_ENGAGE_GPIO 32 //GP46
 #define DEFAULT_WAIT_TIME_MS 300
 
 int main(int argc, char** argv)
 {
     curl_global_init(CURL_GLOBAL_DEFAULT);
     mraa_init();
-    mraa_gpio_context gpio_context = mraa_gpio_init(DRIVE_MOTOR_GPIO);
-    if(gpio_context == NULL || mraa_gpio_dir(gpio_context, MRAA_GPIO_OUT) != MRAA_SUCCESS) exit(1);
-    mraa_gpio_write(gpio_context, false);
+    mraa_gpio_context drive_context = mraa_gpio_init(DRIVE_MOTOR_GPIO);
+    if(drive_context == NULL || mraa_gpio_dir(drive_context, MRAA_GPIO_OUT) != MRAA_SUCCESS) exit(1);
+    mraa_gpio_write(drive_context, false);
+    mraa_gpio_context reverse_context = mraa_gpio_init(REVERSE_ENGAGE_GPIO);
+    if(reverse_context == NULL || mraa_gpio_dir(reverse_context, MRAA_GPIO_OUT) != MRAA_SUCCESS) exit(1);
+    mraa_gpio_write(reverse_context, false);
 
     printf("%s Wifi RC Interface\n", mraa_get_platform_name());
 
-    while(true) loop(gpio_context);
+    while(true) loop(drive_context);
 
     curl_global_cleanup();
     mraa_deinit();
