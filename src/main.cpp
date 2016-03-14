@@ -15,8 +15,14 @@ enum COMMAND
 };
 const char* COMMAND_NAMES[] = {"IDLE","FORWARD","REVERSE","INVALID","LEFT","INVALID","INVALID","INVALID","RIGHT"};
 
+struct context
+{
+    mraa_gpio_context drive_context;
+    mraa_gpio_context reverse_context;
+};
+
 int getCommand();
-void loop(mraa_gpio_context gpio_context);
+void loop(context& gpio_context);
 
 int gMagnitude = 0;
 bool gReverseEnabled = false;
@@ -39,7 +45,10 @@ int main(int argc, char** argv)
 
     printf("%s Wifi RC Interface\n", mraa_get_platform_name());
 
-    while(true) loop(drive_context);
+    context session;
+    session.drive_context = drive_context;
+    session.reverse_context = reverse_context;
+    while(true) loop(session);
 
     curl_global_cleanup();
     mraa_deinit();
@@ -112,15 +121,15 @@ int getCommand()
 
 }
 
-void enableReverse(bool enabled, mraa_gpio_context gpio_context)
+void enableReverse(bool enabled, context& gpio_context)
 {
-    mraa_gpio_write(gpio_context, false);
+    mraa_gpio_write(gpio_context.drive_context, false);
     std::this_thread::sleep_for(std::chrono::milliseconds(DEFAULT_WAIT_TIME_MS));
-    //Shift into/out of reverse here
+    mraa_gpio_write(gpio_context.reverse_context, enabled);
     gReverseEnabled = enabled;
 }
 
-void loop(mraa_gpio_context gpio_context)
+void loop(context& gpio_context)
 {
     int raw = getCommand();
 
@@ -145,6 +154,6 @@ void loop(mraa_gpio_context gpio_context)
             break;
     }
     if(gReverseEnabled && killReverse) enableReverse(false, gpio_context);
-    mraa_gpio_write(gpio_context, shouldDrive);
+    mraa_gpio_write(gpio_context.drive_context, shouldDrive);
     std::this_thread::sleep_for(std::chrono::milliseconds(gMagnitude > 0 ? gMagnitude: DEFAULT_WAIT_TIME_MS));
 }
