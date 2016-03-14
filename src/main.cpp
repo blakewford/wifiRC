@@ -16,17 +16,26 @@ enum COMMAND
 const char* COMMAND_NAMES[] = {"IDLE","FORWARD","REVERSE","INVALID","LEFT","INVALID","INVALID","INVALID","RIGHT"};
 
 int getCommand();
-void loop();
+void loop(mraa_gpio_context gpio_context);
 
 int gMagnitude = 0;
+bool gReverseEnabled = false;
 const char* RC_ADDRESS = "http://192.168.1.243:8080/CommandServer/currentCommand";
+
+#define DRIVE_MOTOR_GPIO 31 //GP44
+#define DEFAULT_WAIT_TIME_MS 300
 
 int main(int argc, char** argv)
 {
     curl_global_init(CURL_GLOBAL_DEFAULT);
+    mraa_init();
+    mraa_gpio_context gpio_context = mraa_gpio_init(DRIVE_MOTOR_GPIO);
+    if(gpio_context == NULL || mraa_gpio_dir(gpio_context, MRAA_GPIO_OUT) != MRAA_SUCCESS) exit(1);
+    mraa_gpio_write(gpio_context, false);
+
     printf("%s Wifi RC Interface\n", mraa_get_platform_name());
 
-    while(true) loop();
+    while(true) loop(gpio_context);
 
     curl_global_cleanup();
     mraa_deinit();
@@ -99,14 +108,39 @@ int getCommand()
 
 }
 
-void loop()
+void enableReverse(bool enabled, mraa_gpio_context gpio_context)
 {
-    std::this_thread::sleep_for(std::chrono::milliseconds(300));
+    mraa_gpio_write(gpio_context, false);
+    std::this_thread::sleep_for(std::chrono::milliseconds(DEFAULT_WAIT_TIME_MS));
+    //Shift into/out of reverse here
+    gReverseEnabled = enabled;
+}
+
+void loop(mraa_gpio_context gpio_context)
+{
     int raw = getCommand();
+
     int value = raw;
-    if(value > 3)
+    if(value > 3) value &= 0xC;
+    printf("%s\n", COMMAND_NAMES[value]);
+
+    bool killReverse = true;
+    bool shouldDrive = false;
+    switch(raw &= 0x3)
     {
-        value &= 0xC;
+        case FORWARD:
+            shouldDrive = true;
+            break;
+        case REVERSE:
+            killReverse = false;
+            if(!gReverseEnabled) enableReverse(true, gpio_context);
+            shouldDrive = true;
+            break;
+        case IDLE:
+        default:
+            break;
     }
-    printf("%s %i %i\n", COMMAND_NAMES[value], raw, gMagnitude);
+    if(gReverseEnabled && killReverse) enableReverse(false, gpio_context);
+    mraa_gpio_write(gpio_context, shouldDrive);
+    std::this_thread::sleep_for(std::chrono::milliseconds(gMagnitude > 0 ? gMagnitude: DEFAULT_WAIT_TIME_MS));
 }

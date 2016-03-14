@@ -1,2 +1,4 @@
 *.pyc
 src/LVWSSysAdmin
+*.*~
+src/CommandServer/currentCommand
