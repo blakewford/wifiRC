@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Response>
+<Terminal><Name>direction</Name><Value>0</Value></Terminal>
+<Terminal><Name>directionString</Name><Value>IDLE</Value></Terminal>
+<Terminal><Name>magnitude</Name><Value>0</Value></Terminal>
+</Response>

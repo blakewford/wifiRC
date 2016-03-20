@@ -2,3 +2,6 @@
 src/python/LVWSSysAdmin
 *.*~
 src/python/CommandServer/currentCommand
+src/android/local.properties
+src/android/bin
+src/android/gen
