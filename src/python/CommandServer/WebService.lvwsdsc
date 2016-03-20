@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<WebService Name="TimeServer" Version="1.0" xmlns="">
+<WebService Name="CommandServer" Version="1.0" xmlns="">
 <Responses>
 <Response Name="" Format="XML" Mode="Terminal">
 <Output Name="direction" Type="Long"/>
