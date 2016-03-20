@@ -21,5 +21,5 @@ void loop()
   if(digitalRead(DRIVE_CONTROL_PIN) == HIGH) digitalWrite(DRIVE_MOTOR_PIN, HIGH);
   else digitalWrite(DRIVE_MOTOR_PIN, LOW);
 
-  delay(1000);
+  delay(10);
 }
