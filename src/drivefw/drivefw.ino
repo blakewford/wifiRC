@@ -2,9 +2,13 @@
 #define REVERSE_ENGAGE_PIN 6
 #define DRIVE_CONTROL_PIN 7
 #define DRIVE_MOTOR_PIN 8
+#define LIGHTS_CONTROL_PIN 9
+#define LIGHTS_ENABLE_PIN 10
 
 void setup()
 {
+  pinMode(LIGHTS_ENABLE_PIN, OUTPUT);
+  pinMode(LIGHTS_CONTROL_PIN, INPUT_PULLUP);
   pinMode(DRIVE_MOTOR_PIN, OUTPUT);
   pinMode(DRIVE_CONTROL_PIN, INPUT_PULLUP);
   pinMode(REVERSE_ENGAGE_PIN, OUTPUT);
@@ -15,6 +19,9 @@ void setup()
 
 void loop()
 {
+  if(digitalRead(LIGHTS_CONTROL_PIN) == HIGH) digitalWrite(LIGHTS_ENABLE_PIN, HIGH);
+  else digitalWrite(LIGHTS_ENABLE_PIN, LOW);
+  
   if(digitalRead(REVERSE_CONTROL_PIN) == HIGH) digitalWrite(REVERSE_ENGAGE_PIN, HIGH);
   else digitalWrite(REVERSE_ENGAGE_PIN, LOW);
 
