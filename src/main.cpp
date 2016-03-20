@@ -19,6 +19,7 @@ struct context
 {
     mraa_gpio_context drive_context;
     mraa_gpio_context reverse_context;
+    mraa_gpio_context light_context;
 };
 
 int getCommand();
@@ -30,6 +31,7 @@ const char* RC_ADDRESS = "http://192.168.1.243:8080/CommandServer/currentCommand
 
 #define DRIVE_MOTOR_GPIO 31 //GP44
 #define REVERSE_ENGAGE_GPIO 32 //GP46
+#define LIGHT_GPIO 33 //GP48
 #define DEFAULT_WAIT_TIME_MS 300
 
 int main(int argc, char** argv)
@@ -42,12 +44,17 @@ int main(int argc, char** argv)
     mraa_gpio_context reverse_context = mraa_gpio_init(REVERSE_ENGAGE_GPIO);
     if(reverse_context == NULL || mraa_gpio_dir(reverse_context, MRAA_GPIO_OUT) != MRAA_SUCCESS) exit(1);
     mraa_gpio_write(reverse_context, false);
+    mraa_gpio_context light_context = mraa_gpio_init(LIGHT_GPIO);
+    if(light_context == NULL || mraa_gpio_dir(light_context, MRAA_GPIO_OUT) != MRAA_SUCCESS) exit(1);
+    mraa_gpio_write(light_context, false);
 
     printf("%s Wifi RC Interface\n", mraa_get_platform_name());
 
     context session;
     session.drive_context = drive_context;
     session.reverse_context = reverse_context;
+    session.light_context = light_context;
+
     while(true) loop(session);
 
     curl_global_cleanup();
