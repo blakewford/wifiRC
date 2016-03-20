@@ -38,7 +38,7 @@ class Handler(SimpleHTTPServer.SimpleHTTPRequestHandler):
 	global gDirection
 	global gMagnitude
 	if "/CommandServer/currentCommand" in self.path:
-		commandserver.current_command(gDirection, gMagnitude)
+		commandserver.current_command(gDirection, gMagnitude, False)
 		if gDirection == 0 and gMagnitude >= 24:
 			gMagnitude -= 24
 		elif gDirection == 0:
