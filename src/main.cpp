@@ -1,4 +1,6 @@
+#ifndef DESKTOP
 #include "mraa.h"
+#endif
 #include <chrono>
 #include <thread>
 #include <stdio.h>
@@ -17,9 +19,11 @@ const char* COMMAND_NAMES[] = {"IDLE","FORWARD","REVERSE","INVALID","LEFT","INVA
 
 struct context
 {
+#ifndef DESKTOP
     mraa_gpio_context drive_context;
     mraa_gpio_context reverse_context;
     mraa_gpio_context light_context;
+#endif
 };
 
 int getCommand();
@@ -37,6 +41,7 @@ const char* RC_ADDRESS = "http://192.168.1.243:8080/CommandServer/currentCommand
 int main(int argc, char** argv)
 {
     curl_global_init(CURL_GLOBAL_DEFAULT);
+#ifndef DESKTOP
     mraa_init();
     mraa_gpio_context drive_context = mraa_gpio_init(DRIVE_MOTOR_GPIO);
     if(drive_context == NULL || mraa_gpio_dir(drive_context, MRAA_GPIO_OUT) != MRAA_SUCCESS) exit(1);
@@ -49,16 +54,20 @@ int main(int argc, char** argv)
     mraa_gpio_write(light_context, false);
 
     printf("%s Wifi RC Interface\n", mraa_get_platform_name());
+#endif
 
     context session;
+#ifndef DESKTOP
     session.drive_context = drive_context;
     session.reverse_context = reverse_context;
     session.light_context = light_context;
-
+#endif
     while(true) loop(session);
 
     curl_global_cleanup();
+#ifndef DESKTOP
     mraa_deinit();
+#endif
 
     return 0;
 
@@ -130,10 +139,12 @@ int getCommand()
 
 void enableReverse(bool enabled, context& gpio_context)
 {
+#ifndef DESKTOP
     mraa_gpio_write(gpio_context.drive_context, false);
     std::this_thread::sleep_for(std::chrono::milliseconds(DEFAULT_WAIT_TIME_MS));
     mraa_gpio_write(gpio_context.reverse_context, enabled);
     gReverseEnabled = enabled;
+#endif
 }
 
 void loop(context& gpio_context)
@@ -161,6 +172,8 @@ void loop(context& gpio_context)
             break;
     }
     if(gReverseEnabled && killReverse) enableReverse(false, gpio_context);
+#ifndef DESKTOP
     mraa_gpio_write(gpio_context.drive_context, shouldDrive);
+#endif
     std::this_thread::sleep_for(std::chrono::milliseconds(gMagnitude > 0 ? gMagnitude: DEFAULT_WAIT_TIME_MS));
 }
