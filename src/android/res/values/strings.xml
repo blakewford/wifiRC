@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Remote</string>
+    <string name="lights_label">Lamps</string>
+    <string name="drive_label">D</string>
+    <string name="reverse_label">R</string>
 </resources>
