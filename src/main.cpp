@@ -31,7 +31,9 @@ void loop(context& gpio_context);
 
 int gMagnitude = 0;
 bool gReverseEnabled = false;
-const char* RC_ADDRESS = "http://192.168.1.243:8080/CommandServer/currentCommand";
+
+const char* RC_ADDRESS_BASE = "http://192.168.1.";
+const char* RC_ADDRESS_SUFFIX = ":8080/CommandServer/currentCommand";
 
 #define DRIVE_MOTOR_GPIO 31 //GP44
 #define REVERSE_ENGAGE_GPIO 32 //GP46
@@ -122,7 +124,17 @@ int getCommand()
     if(pCURL)
     {
         int temp;
-        curl_easy_setopt(pCURL, CURLOPT_URL, RC_ADDRESS);
+//Need to do something smarter here like search for servers on the local network
+        char buffer[4];
+        char address_buffer[64];
+        memset(buffer, '\0', 4);
+        memset(address_buffer, '\0', 64);
+        strcat(address_buffer, RC_ADDRESS_BASE);
+        sprintf(buffer, "%i", DEV);
+        strcat(address_buffer, buffer);
+        strcat(address_buffer, RC_ADDRESS_SUFFIX);
+
+        curl_easy_setopt(pCURL, CURLOPT_URL, address_buffer);
         curl_easy_setopt(pCURL, CURLOPT_WRITEFUNCTION, curl_write_function);
         curl_easy_setopt(pCURL, CURLOPT_WRITEDATA, &temp);
         CURLcode result = curl_easy_perform(pCURL);
