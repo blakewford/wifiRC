@@ -171,23 +171,39 @@ public class SimpleWebServer implements Runnable {
         output.flush();
     }
 
-    /**
-     * Loads all the content of {@code fileName}.
-     *
-     * @param fileName The name of the file.
-     * @return The content of the file.
-     * @throws IOException
-     */
+    private static final String HEADER =
+        "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<Response>\n";
+
+    private static byte[] buildTerminal(String name, String value) {
+        StringBuilder builder = new StringBuilder();
+        builder.append("<Terminal><Name>");
+        builder.append(name);
+        builder.append("</Name><Value>");
+        builder.append(value);
+        builder.append("</Value></Terminal>\n");
+        byte[] bytes = new byte[0];
+        try {
+            bytes = builder.toString().getBytes("UTF-8");
+        }catch(Exception e) {
+        }
+
+        return bytes;
+    }
+
+    private static final String FOOTER = "</Response>";
+
     private byte[] loadContent(String fileName) throws IOException {
         InputStream input = null;
         try {
             ByteArrayOutputStream output = new ByteArrayOutputStream();
-            input = mAssets.open(fileName);
-            byte[] buffer = new byte[1024];
-            int size;
-            while (-1 != (size = input.read(buffer))) {
-                output.write(buffer, 0, size);
-            }
+
+            output.write(HEADER.getBytes());
+            output.write(buildTerminal("direction", new Long(0).toString()));
+            output.write(buildTerminal("directionString", "IDLE"));
+            output.write(buildTerminal("magnitude", new Long(0).toString()));
+            output.write(buildTerminal("lights", new Long(1).toString()));
+            output.write(FOOTER.getBytes());
+
             output.flush();
             return output.toByteArray();
         } catch (FileNotFoundException e) {
