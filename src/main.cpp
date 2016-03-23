@@ -30,6 +30,7 @@ int getCommand();
 void loop(context& gpio_context);
 
 int gMagnitude = 0;
+bool gLights = false;
 bool gReverseEnabled = false;
 
 const char* RC_ADDRESS_BASE = "http://192.168.1.";
@@ -83,6 +84,7 @@ size_t curl_write_function(void* buffer, size_t size, size_t nmemb, int* p)
     static const char* TERMINAL_STRING = "Terminal";
     static const char* directionTerminal = "direction";
     static const char* magnitudeTerminal = "magnitude";
+    static const char* lightsTerminal = "lights";
 
     char test[64];
     char name[64];
@@ -111,6 +113,10 @@ size_t curl_write_function(void* buffer, size_t size, size_t nmemb, int* p)
         if(!strcmp(name, magnitudeTerminal))
         {
             gMagnitude = atoi(value);
+        }
+        if(!strcmp(name, lightsTerminal))
+        {
+            gLights = atoi(value);
         }
     }
 
@@ -186,6 +192,7 @@ void loop(context& gpio_context)
     if(gReverseEnabled && killReverse) enableReverse(false, gpio_context);
 #ifndef DESKTOP
     mraa_gpio_write(gpio_context.drive_context, shouldDrive);
+    mraa_gpio_write(gpio_context.light_context, gLights);
 #endif
     std::this_thread::sleep_for(std::chrono::milliseconds(gMagnitude > 0 ? gMagnitude: DEFAULT_WAIT_TIME_MS));
 }
