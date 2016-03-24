@@ -230,6 +230,7 @@ public class MainActivity extends Activity implements Runnable
         output.write(buildTerminal("directionString", COMMAND_NAMES[stringIndex]));
         output.write(buildTerminal("magnitude", Long.valueOf(accelProgress).toString()));
         output.write(buildTerminal("lights", Long.valueOf(mLightsButton.isChecked() ? 1: 0).toString()));
+        output.write(buildTerminal("gear", Long.valueOf(directionState == REVERSE ? 1: 0).toString()));
         output.write(FOOTER.getBytes());
         output.flush();
 

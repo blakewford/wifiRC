@@ -5,10 +5,12 @@ import wsutils, commandserver
 
 gDirection = 0;
 gMagnitude = 0;
+gGear = 0;
 
 def getDirection():
 	global gDirection
 	global gMagnitude
+	global gGear
         while(1):
 		while(1):
 			fd = sys.stdin.fileno()
@@ -24,10 +26,12 @@ def getDirection():
 			if gDirection & 1 and gMagnitude < 120:
 				gMagnitude += 3;
 			gDirection = 1
+			gGear = 0
 		elif arrow=='\x1b[B':
 			if gDirection & 2 and gMagnitude < 120:
 				gMagnitude += 3;
 			gDirection = 2
+			gGear = 1
 		elif arrow=='\x1b[D':
 			gDirection |= 4
 		elif arrow=='\x1b[C':
@@ -37,8 +41,9 @@ class Handler(SimpleHTTPServer.SimpleHTTPRequestHandler):
     def do_GET(self):
 	global gDirection
 	global gMagnitude
+	global gGear
 	if "/CommandServer/currentCommand" in self.path:
-		commandserver.current_command(gDirection, gMagnitude, False)
+		commandserver.current_command(gDirection, gGear, gMagnitude, False)
 		if gDirection == 0 and gMagnitude >= 24:
 			gMagnitude -= 24
 		elif gDirection == 0:

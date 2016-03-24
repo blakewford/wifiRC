@@ -7,6 +7,13 @@
 #include <string.h>
 #include <curl/curl.h>
 
+enum GEAR
+{
+    D = 0,
+    R = 1,
+};
+const char* GEAR_NAMES[] = {"DRIVE","REVERSE"};
+
 enum COMMAND
 {
     IDLE = 0,
@@ -31,7 +38,7 @@ void loop(context& gpio_context);
 
 int gMagnitude = 0;
 bool gLights = false;
-bool gReverseEnabled = false;
+int gGear = 0;
 
 const char* RC_ADDRESS_BASE = "http://192.168.1.";
 const char* RC_ADDRESS_SUFFIX = ":8080/CommandServer/currentCommand";
@@ -85,6 +92,7 @@ size_t curl_write_function(void* buffer, size_t size, size_t nmemb, int* p)
     static const char* directionTerminal = "direction";
     static const char* magnitudeTerminal = "magnitude";
     static const char* lightsTerminal = "lights";
+    static const char* gearTerminal = "gear";
 
     char test[64];
     char name[64];
@@ -117,6 +125,10 @@ size_t curl_write_function(void* buffer, size_t size, size_t nmemb, int* p)
         if(!strcmp(name, lightsTerminal))
         {
             gLights = atoi(value);
+        }
+        if(!strcmp(name, gearTerminal))
+        {
+            gGear = atoi(value);
         }
     }
 
@@ -155,44 +167,29 @@ int getCommand()
 
 }
 
-void enableReverse(bool enabled, context& gpio_context)
-{
-#ifndef DESKTOP
-    mraa_gpio_write(gpio_context.drive_context, false);
-    std::this_thread::sleep_for(std::chrono::milliseconds(DEFAULT_WAIT_TIME_MS));
-    mraa_gpio_write(gpio_context.reverse_context, enabled);
-    gReverseEnabled = enabled;
-#endif
-}
-
 void loop(context& gpio_context)
 {
     int raw = getCommand();
 
     int value = raw;
     if(value > 3) value &= 0xC;
-    printf("%s\n", COMMAND_NAMES[value]);
+    printf("%s %s\n", COMMAND_NAMES[value], GEAR_NAMES[gGear]);
 
-    bool killReverse = true;
     bool shouldDrive = false;
     switch(raw &= 0x3)
     {
         case FORWARD:
-            shouldDrive = true;
-            break;
         case REVERSE:
-            killReverse = false;
-            if(!gReverseEnabled) enableReverse(true, gpio_context);
             shouldDrive = true;
             break;
         case IDLE:
         default:
             break;
     }
-    if(gReverseEnabled && killReverse) enableReverse(false, gpio_context);
 #ifndef DESKTOP
     mraa_gpio_write(gpio_context.drive_context, shouldDrive);
     mraa_gpio_write(gpio_context.light_context, gLights);
+    mraa_gpio_write(gpio_context.reverse_context, gGear);
 #endif
     std::this_thread::sleep_for(std::chrono::milliseconds(gMagnitude > 0 ? gMagnitude: DEFAULT_WAIT_TIME_MS));
 }
