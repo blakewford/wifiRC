@@ -6,6 +6,7 @@
 <Output Name="directionString" Type="String"/>
 <Output Name="magnitude" Type="Long"/>
 <Output Name="lights" Type="Boolean"/>
+<Output Name="gear" Type="Long"/>
 </Response>
 </Responses>
 <Methods>
