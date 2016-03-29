@@ -5,6 +5,7 @@
 #include <thread>
 #include <stdio.h>
 #include <string.h>
+#include <assert.h>
 #include <curl/curl.h>
 
 enum GEAR
@@ -24,6 +25,8 @@ enum COMMAND
 };
 const char* COMMAND_NAMES[] = {"IDLE","FORWARD","REVERSE","INVALID","LEFT","INVALID","INVALID","INVALID","RIGHT"};
 
+const char* CONTENT_TYPES[] = {"PLATFORM"};
+
 struct context
 {
 #ifndef DESKTOP
@@ -34,6 +37,7 @@ struct context
 };
 
 int getCommand();
+void getAddress(char* buffer, int size);
 void loop(context& gpio_context);
 
 int gMagnitude = 0;
@@ -63,8 +67,31 @@ int main(int argc, char** argv)
     if(light_context == NULL || mraa_gpio_dir(light_context, MRAA_GPIO_OUT) != MRAA_SUCCESS) exit(1);
     mraa_gpio_write(light_context, false);
 
-    printf("%s Wifi RC Interface\n", mraa_get_platform_name());
 #endif
+
+    char platform_name[64];
+    memset(platform_name, '\0', 64);
+    const char* type = CONTENT_TYPES[0];
+#ifndef DESKTOP
+    sprintf(platform_name, "%s:%s", type, mraa_get_platform_name());
+#else
+    sprintf(platform_name, "%s:%s", type, "Desktop");
+#endif
+    printf("%s Wifi RC Interface\n", platform_name);
+
+    CURL* pCURL = curl_easy_init();
+    if(pCURL)
+    {
+        char address_buffer[64];
+        getAddress(address_buffer, 64);
+        curl_easy_setopt(pCURL, CURLOPT_URL, address_buffer);
+        curl_easy_setopt(pCURL, CURLOPT_POSTFIELDS, platform_name);
+        CURLcode result = curl_easy_perform(pCURL);
+        if(result == CURLE_OK)
+        {
+        }
+        curl_easy_cleanup(pCURL);
+    }
 
     context session;
 #ifndef DESKTOP
@@ -142,16 +169,8 @@ int getCommand()
     if(pCURL)
     {
         int temp;
-//Need to do something smarter here like search for servers on the local network
-        char buffer[4];
         char address_buffer[64];
-        memset(buffer, '\0', 4);
-        memset(address_buffer, '\0', 64);
-        strcat(address_buffer, RC_ADDRESS_BASE);
-        sprintf(buffer, "%i", DEV);
-        strcat(address_buffer, buffer);
-        strcat(address_buffer, RC_ADDRESS_SUFFIX);
-
+        getAddress(address_buffer, 64);
         curl_easy_setopt(pCURL, CURLOPT_URL, address_buffer);
         curl_easy_setopt(pCURL, CURLOPT_WRITEFUNCTION, curl_write_function);
         curl_easy_setopt(pCURL, CURLOPT_WRITEDATA, &temp);
@@ -165,6 +184,20 @@ int getCommand()
 
     return command;
 
+}
+
+void getAddress(char* address_buffer, int size)
+{
+    assert(size == 64);
+
+//Need to do something smarter here like search for servers on the local network
+    char buffer[4];
+    memset(buffer, '\0', 4);
+    memset(address_buffer, '\0', 64);
+    strcat(address_buffer, RC_ADDRESS_BASE);
+    sprintf(buffer, "%i", DEV);
+    strcat(address_buffer, buffer);
+    strcat(address_buffer, RC_ADDRESS_SUFFIX);
 }
 
 void loop(context& gpio_context)

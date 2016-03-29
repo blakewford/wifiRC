@@ -28,6 +28,8 @@ public class MainActivity extends Activity implements Runnable
         "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<Response>\n";
     private static final String FOOTER = "</Response>";
 
+    private final static String CONTENT_LENGTH_KEY = "Content-Length: ";
+
     private SeekBar mAccelBar = null;
     private SeekBar mSteeringBar = null;
 
@@ -36,6 +38,11 @@ public class MainActivity extends Activity implements Runnable
 
     private boolean mIsRunning = false;
     private ServerSocket mServerSocket = null;
+
+    private enum Content
+    {
+        PLATFORM
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState)
@@ -150,6 +157,7 @@ public class MainActivity extends Activity implements Runnable
             // Read HTTP headers and parse out the route.
             reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             String line;
+            Integer contentLength = 0;
             while(!TextUtils.isEmpty(line = reader.readLine()))
             {
                 if(line.startsWith("GET /"))
@@ -159,20 +167,61 @@ public class MainActivity extends Activity implements Runnable
                     route = line.substring(start, end);
                     break;
                 }
+                if(line.startsWith("POST /"))
+                {
+                    while(!line.startsWith(CONTENT_LENGTH_KEY))
+                    {
+                        line = reader.readLine();
+                    }
+                    contentLength = Integer.parseInt(line.substring(CONTENT_LENGTH_KEY.length()));
+                }
             }
 
             // Output stream that we send the response to
             output = new PrintStream(socket.getOutputStream());
 
-            // Prepare the content to send.
-            if (null == route)
+            byte[] bytes = new byte[0];
+            boolean setContent = contentLength > 0;
+            if(setContent)
             {
-                return;
+                StringBuilder builder = new StringBuilder();
+                for(int i = 0; i < contentLength; i++)
+                {
+                    builder.append(Character.toChars(reader.read()));
+                }
+
+                final Integer id;
+                String pair = builder.toString();
+                int delimiterIndex = pair.indexOf(':');
+                Content content = Content.valueOf(pair.substring(0, delimiterIndex));
+                switch(content)
+                {
+                    case PLATFORM:
+                        id = R.id.device_type;
+                        break;
+                    default:
+                        id = null;
+                }
+                final String post = pair.substring(delimiterIndex+1);
+                runOnUiThread(new Runnable(){
+                    public void run()
+                    {
+                        ((TextView)findViewById(id)).setText(post);
+                    }
+                });
             }
-            byte[] bytes = loadContent(route);
-            if (null == bytes)
+            else
             {
-                return;
+                // Prepare the content to send.
+                if(null == route)
+                {
+                    return;
+                }
+                bytes = loadContent(route);
+                if(null == bytes)
+                {
+                    return;
+                }
             }
 
             // Send out the content.
