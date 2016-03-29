@@ -6,6 +6,7 @@ import android.text.*;
 import android.widget.*;
 import android.net.wifi.*;
 import android.text.format.*;
+import android.content.res.*;
 
 import java.io.*;
 import java.net.*;
@@ -36,8 +37,12 @@ public class MainActivity extends Activity implements Runnable
     private ToggleButton mLightsButton = null;
     private ToggleButton mReverseButton = null;
 
+    private TextView mDeviceName = null;
+
     private boolean mIsRunning = false;
     private ServerSocket mServerSocket = null;
+
+    private boolean mVehiclePosted = false;
 
     private enum Content
     {
@@ -62,6 +67,8 @@ public class MainActivity extends Activity implements Runnable
 
         mLightsButton = (ToggleButton)findViewById(R.id.lights_enabled);
         mReverseButton = (ToggleButton)findViewById(R.id.reverse_engaged);
+
+        mDeviceName = (TextView)findViewById(R.id.device_type);
 
         start();
     }
@@ -110,6 +117,8 @@ public class MainActivity extends Activity implements Runnable
 
     public void start()
     {
+        Resources res = getResources();
+        new ResetTask().execute(res.getString(R.string.device_label));
         mIsRunning = true;
         new Thread(this).start();
     }
@@ -169,6 +178,7 @@ public class MainActivity extends Activity implements Runnable
                 }
                 if(line.startsWith("POST /"))
                 {
+                    mVehiclePosted = true;
                     while(!line.startsWith(CONTENT_LENGTH_KEY))
                     {
                         line = reader.readLine();
@@ -284,6 +294,38 @@ public class MainActivity extends Activity implements Runnable
         output.flush();
 
         return output.toByteArray();
+    }
+
+    private class ResetTask extends AsyncTask<String,Void,Void>
+    {
+        private String mDefaultDeviceName = null;
+
+        public Void doInBackground(String... params)
+        {
+            mDefaultDeviceName = params[0];
+            try
+            {
+                Thread.sleep(1300);
+            }catch(Exception e)
+            {
+            }
+
+            return null;
+        }
+
+        public void onPostExecute(Void result)
+        {
+            if(mVehiclePosted)
+            {
+                mVehiclePosted = false;
+            }
+            else
+            {
+                mDeviceName.setText(mDefaultDeviceName);
+            }
+
+            new ResetTask().execute(mDefaultDeviceName);
+        }
     }
 
 }

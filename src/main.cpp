@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
+#include <pthread.h>
 #include <curl/curl.h>
 
 enum GEAR
@@ -38,11 +39,13 @@ struct context
 
 int getCommand();
 void getAddress(char* buffer, int size);
+void* send(void* params);
 void loop(context& gpio_context);
 
 int gMagnitude = 0;
 bool gLights = false;
 int gGear = 0;
+bool gKeepGoing = false;
 
 const char* RC_ADDRESS_BASE = "http://192.168.1.";
 const char* RC_ADDRESS_SUFFIX = ":8080/CommandServer/currentCommand";
@@ -77,21 +80,12 @@ int main(int argc, char** argv)
 #else
     sprintf(platform_name, "%s:%s", type, "Desktop");
 #endif
-    printf("%s Wifi RC Interface\n", platform_name);
 
-    CURL* pCURL = curl_easy_init();
-    if(pCURL)
-    {
-        char address_buffer[64];
-        getAddress(address_buffer, 64);
-        curl_easy_setopt(pCURL, CURLOPT_URL, address_buffer);
-        curl_easy_setopt(pCURL, CURLOPT_POSTFIELDS, platform_name);
-        CURLcode result = curl_easy_perform(pCURL);
-        if(result == CURLE_OK)
-        {
-        }
-        curl_easy_cleanup(pCURL);
-    }
+    gKeepGoing = true;
+    pthread_t send_thread;
+    char* delimiter = strchr(platform_name, ':');
+    printf("%s Wifi RC Interface\n", delimiter+1);
+    pthread_create(&send_thread, NULL, send, platform_name);
 
     context session;
 #ifndef DESKTOP
@@ -101,6 +95,8 @@ int main(int argc, char** argv)
 #endif
     while(true) loop(session);
 
+    gKeepGoing = false;
+    pthread_join(send_thread, NULL);
     curl_global_cleanup();
 #ifndef DESKTOP
     mraa_deinit();
@@ -198,6 +194,29 @@ void getAddress(char* address_buffer, int size)
     sprintf(buffer, "%i", DEV);
     strcat(address_buffer, buffer);
     strcat(address_buffer, RC_ADDRESS_SUFFIX);
+}
+
+void* send(void* params)
+{
+    while(gKeepGoing)
+    {
+        CURL* pCURL = curl_easy_init();
+        if(pCURL)
+        {
+            char address_buffer[64];
+            getAddress(address_buffer, 64);
+            curl_easy_setopt(pCURL, CURLOPT_URL, address_buffer);
+            curl_easy_setopt(pCURL, CURLOPT_POSTFIELDS, params);
+            CURLcode result = curl_easy_perform(pCURL);
+            if(result == CURLE_OK)
+            {
+            }
+            curl_easy_cleanup(pCURL);
+        }
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+    }
+
+    return NULL;
 }
 
 void loop(context& gpio_context)
