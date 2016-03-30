@@ -1,4 +1,7 @@
-#define LEFT_ENGAGE_PIN 4
+#define RIGHT_CONTROL_PIN 11
+#define RIGHT_ENGAGE_PIN 2
+#define STEERING_CONTROL_PIN 3
+#define STEERING_ENGAGE_PIN 4
 #define REVERSE_CONTROL_PIN 5
 #define REVERSE_ENGAGE_PIN 6
 #define DRIVE_CONTROL_PIN 7
@@ -13,7 +16,7 @@ void setup()
   pinMode(DRIVE_MOTOR_PIN, OUTPUT);
   pinMode(DRIVE_CONTROL_PIN, INPUT_PULLUP);
   pinMode(REVERSE_ENGAGE_PIN, OUTPUT);
-  pinMode(LEFT_ENGAGE_PIN, OUTPUT);
+  pinMode(RIGHT_ENGAGE_PIN, OUTPUT);
   pinMode(REVERSE_CONTROL_PIN, INPUT_PULLUP);
 
   delay(5000); //Make sure the Edison has started running
@@ -27,8 +30,8 @@ void loop()
   if(digitalRead(REVERSE_CONTROL_PIN) == HIGH) digitalWrite(REVERSE_ENGAGE_PIN, HIGH);
   else digitalWrite(REVERSE_ENGAGE_PIN, LOW);
 
-  if(digitalRead(REVERSE_CONTROL_PIN) == HIGH) digitalWrite(LEFT_ENGAGE_PIN, HIGH);
-  else digitalWrite(LEFT_ENGAGE_PIN, LOW);
+  if(digitalRead(REVERSE_CONTROL_PIN) == HIGH) digitalWrite(RIGHT_ENGAGE_PIN, HIGH);
+  else digitalWrite(RIGHT_ENGAGE_PIN, LOW);
 
   if(digitalRead(DRIVE_CONTROL_PIN) == HIGH) digitalWrite(DRIVE_MOTOR_PIN, HIGH);
   else digitalWrite(DRIVE_MOTOR_PIN, LOW);
