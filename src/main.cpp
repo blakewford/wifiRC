@@ -49,6 +49,7 @@ bool gKeepGoing = false;
 
 const char* RC_ADDRESS_BASE = "http://192.168.1.";
 const char* RC_ADDRESS_SUFFIX = ":8080/CommandServer/currentCommand";
+const char* RC_JSON_ADDRESS_SUFFIX = ":8080/CommandServer/currentJsonCommand";
 
 #define DRIVE_MOTOR_GPIO 31 //GP44
 #define REVERSE_ENGAGE_GPIO 32 //GP46
@@ -106,16 +107,16 @@ int main(int argc, char** argv)
 
 }
 
+static const char* directionTerminal = "direction";
+static const char* magnitudeTerminal = "magnitude";
+static const char* lightsTerminal = "lights";
+static const char* gearTerminal = "gear";
 size_t curl_write_function(void* buffer, size_t size, size_t nmemb, int* p)
 {
     static const char* NAME_STRING = "Name";
     static const char* VALUE_STRING = "Value";
     static const char* RESPONSE_STRING = "Response";
     static const char* TERMINAL_STRING = "Terminal";
-    static const char* directionTerminal = "direction";
-    static const char* magnitudeTerminal = "magnitude";
-    static const char* lightsTerminal = "lights";
-    static const char* gearTerminal = "gear";
 
     char test[64];
     char name[64];
@@ -153,6 +154,63 @@ size_t curl_write_function(void* buffer, size_t size, size_t nmemb, int* p)
         {
             gGear = atoi(value);
         }
+    }
+
+    return size*nmemb;
+}
+
+size_t curl_write_json_function(void* buffer, size_t size, size_t nmemb, int* p)
+{
+    static const char* WEAVE_DEVICE = "_wifiRC";
+    static const char* SET_COMMAND = "set";
+    static const char* NAME_STRING = " \"name\"";
+    static const char* PARAMETER_STRING = " \"parameters\"";
+    const char* weave_command[] = {NAME_STRING, PARAMETER_STRING};
+
+    char line[64];
+    char name[64];
+    char value[64];
+    char* parse = strstr((char*)buffer, "{")+strlen("{")+1;
+
+    int length = 0;
+    int data_start = 0;
+    for(int i = 0; i < 2; i++)
+    {
+        memset(line, '\0', 64);
+        memset(name, '\0', 64);
+        memset(value, '\0', 64);
+        length = strchr(parse, '\n')-parse;
+        memcpy(line, parse, length);
+        data_start = strchr(line, ':')-line;
+        memcpy(name, line, data_start);
+        assert(!strcmp(weave_command[i], name));
+        if(!strcmp(name, NAME_STRING))
+        {
+            char command[64];
+            char application[64];
+            char* command_start = 0;
+            memset(command, '\0', 64);
+            memset(application, '\0', 64);
+            memcpy(value, line+data_start+3, length-data_start-5);
+            command_start = strchr(value, '.');
+            memcpy(application, value, command_start-value);
+            assert(!strcmp(application, WEAVE_DEVICE));
+            memcpy(command, command_start+1, strlen(value)-strlen(application)-1);
+            assert(!strcmp(command, SET_COMMAND));
+        }
+        if(!strcmp(name, PARAMETER_STRING))
+        {
+            //Do nothing!
+        }
+        parse+=length+1;
+    }
+    while(strcmp(parse, " }\n}\n"))
+    {
+        length = strchr(parse, '\n')-parse;
+        memset(name, '\0', 64);
+        memcpy(name, parse, length);
+        printf("%s\n", name);
+        parse+=length+1;
     }
 
     return size*nmemb;

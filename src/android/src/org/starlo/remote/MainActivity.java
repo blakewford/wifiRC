@@ -29,8 +29,8 @@ public class MainActivity extends Activity implements Runnable
         "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<Response>\n";
     private static final String FOOTER = "</Response>";
 
-    private static final String JSON_HEADER = "{\n \"name\": \"_wifiRC.set\",\n \"parameters\": {";
-    private static final String JSON_FOOTER = " }\n}";
+    private static final String JSON_HEADER = "{\n \"name\": \"_wifiRC.set\",\n \"parameters\": {\n";
+    private static final String JSON_FOOTER = " }\n}\n";
 
     private final static String CONTENT_LENGTH_KEY = "Content-Length: ";
 
@@ -299,6 +299,12 @@ public class MainActivity extends Activity implements Runnable
 
     private byte[] loadContent(String fileName) throws IOException
     {
+        boolean xmlCommand = fileName.equals("CommandServer/currentCommand");
+        if(!xmlCommand)
+        {
+            assert(fileName.equals("CommandServer/currentJsonCommand"));
+        }
+
         int accelProgress = mAccelBar.getProgress();
         int directionState = mReverseButton.isChecked() ? REVERSE: FORWARD;
         int direction = accelProgress > ACCELERATOR_DEFAULT ? directionState: IDLE;
@@ -313,7 +319,7 @@ public class MainActivity extends Activity implements Runnable
 
         ByteArrayOutputStream output = new ByteArrayOutputStream();
 
-        if(true)
+        if(xmlCommand)
         {
             output.write(HEADER.getBytes());
             output.write(buildTerminal("direction", Long.valueOf(direction).toString()));
