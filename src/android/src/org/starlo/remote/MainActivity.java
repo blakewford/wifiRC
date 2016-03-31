@@ -29,6 +29,9 @@ public class MainActivity extends Activity implements Runnable
         "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<Response>\n";
     private static final String FOOTER = "</Response>";
 
+    private static final String JSON_HEADER = "{\n \"name\": \"_wifiRC.set\",\n \"parameters\": {";
+    private static final String JSON_FOOTER = " }\n}";
+
     private final static String CONTENT_LENGTH_KEY = "Content-Length: ";
 
     private SeekBar mAccelBar = null;
@@ -268,6 +271,32 @@ public class MainActivity extends Activity implements Runnable
         return bytes;
     }
 
+    private byte[] buildJsonTerminal(String name, String value, boolean last)
+    {
+        StringBuilder builder = new StringBuilder();
+        builder.append("\"_");
+        builder.append(name);
+        builder.append("\": \"");
+        builder.append(value);
+        if(last)
+        {
+            builder.append("\"\n");
+        }
+        else
+        {
+            builder.append("\",\n");
+        }
+        byte[] bytes = new byte[0];
+        try
+        {
+            bytes = builder.toString().getBytes("UTF-8");
+        }catch(Exception e)
+        {
+        }
+
+        return bytes;
+    }
+
     private byte[] loadContent(String fileName) throws IOException
     {
         int accelProgress = mAccelBar.getProgress();
@@ -284,13 +313,26 @@ public class MainActivity extends Activity implements Runnable
 
         ByteArrayOutputStream output = new ByteArrayOutputStream();
 
-        output.write(HEADER.getBytes());
-        output.write(buildTerminal("direction", Long.valueOf(direction).toString()));
-        output.write(buildTerminal("directionString", COMMAND_NAMES[stringIndex]));
-        output.write(buildTerminal("magnitude", Long.valueOf(accelProgress).toString()));
-        output.write(buildTerminal("lights", Long.valueOf(mLightsButton.isChecked() ? 1: 0).toString()));
-        output.write(buildTerminal("gear", Long.valueOf(directionState == REVERSE ? 1: 0).toString()));
-        output.write(FOOTER.getBytes());
+        if(true)
+        {
+            output.write(HEADER.getBytes());
+            output.write(buildTerminal("direction", Long.valueOf(direction).toString()));
+            output.write(buildTerminal("directionString", COMMAND_NAMES[stringIndex]));
+            output.write(buildTerminal("magnitude", Long.valueOf(accelProgress).toString()));
+            output.write(buildTerminal("lights", Long.valueOf(mLightsButton.isChecked() ? 1: 0).toString()));
+            output.write(buildTerminal("gear", Long.valueOf(directionState == REVERSE ? 1: 0).toString()));
+            output.write(FOOTER.getBytes());
+        }
+        else
+        {
+            output.write(JSON_HEADER.getBytes());
+            output.write(buildJsonTerminal("direction", Long.valueOf(direction).toString(), false));
+            output.write(buildJsonTerminal("directionString", COMMAND_NAMES[stringIndex], false));
+            output.write(buildJsonTerminal("magnitude", Long.valueOf(accelProgress).toString(), false));
+            output.write(buildJsonTerminal("lights", Long.valueOf(mLightsButton.isChecked() ? 1: 0).toString(), false));
+            output.write(buildJsonTerminal("gear", Long.valueOf(directionState == REVERSE ? 1: 0).toString(), true));
+            output.write(JSON_FOOTER.getBytes());
+        }
         output.flush();
 
         return output.toByteArray();
