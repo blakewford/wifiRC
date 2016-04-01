@@ -170,6 +170,9 @@ size_t curl_write_json_function(void* buffer, size_t size, size_t nmemb, int* p)
     char line[64];
     char name[64];
     char value[64];
+    char command[64];
+    char application[64];
+    char* command_start = NULL;
     char* parse = strstr((char*)buffer, "{")+strlen("{")+1;
 
     int length = 0;
@@ -186,9 +189,6 @@ size_t curl_write_json_function(void* buffer, size_t size, size_t nmemb, int* p)
         assert(!strcmp(weave_command[i], name));
         if(!strcmp(name, NAME_STRING))
         {
-            char command[64];
-            char application[64];
-            char* command_start = 0;
             memset(command, '\0', 64);
             memset(application, '\0', 64);
             memcpy(value, line+data_start+3, length-data_start-5);
@@ -204,12 +204,35 @@ size_t curl_write_json_function(void* buffer, size_t size, size_t nmemb, int* p)
         }
         parse+=length+1;
     }
+
+    bool isGearTerminal = false;
     while(strcmp(parse, " }\n}\n"))
     {
-        length = strchr(parse, '\n')-parse;
+        memset(line, '\0', 64);
         memset(name, '\0', 64);
-        memcpy(name, parse, length);
-        printf("%s\n", name);
+        memset(value, '\0', 64);
+        length = strchr(parse, '\n')-parse;
+        memcpy(line, parse, length);
+        data_start = strchr(line, ':')-line;
+        memcpy(name, line+2, data_start-3);
+        isGearTerminal = !strcmp(name, gearTerminal);
+        memcpy(value, line+data_start+3, length-data_start-(isGearTerminal ? 4: 5));
+        if(!strcmp(name, directionTerminal))
+        {
+            *p = atoi(value);
+        }
+        if(!strcmp(name, magnitudeTerminal))
+        {
+            gMagnitude = atoi(value);
+        }
+        if(!strcmp(name, lightsTerminal))
+        {
+            gLights = atoi(value);
+        }
+        if(!strcmp(name, gearTerminal))
+        {
+            gGear = atoi(value);
+        }
         parse+=length+1;
     }
 
@@ -226,7 +249,7 @@ int getCommand()
         char address_buffer[64];
         getAddress(address_buffer, 64);
         curl_easy_setopt(pCURL, CURLOPT_URL, address_buffer);
-        curl_easy_setopt(pCURL, CURLOPT_WRITEFUNCTION, curl_write_function);
+        curl_easy_setopt(pCURL, CURLOPT_WRITEFUNCTION, curl_write_json_function);
         curl_easy_setopt(pCURL, CURLOPT_WRITEDATA, &temp);
         CURLcode result = curl_easy_perform(pCURL);
         if(result == CURLE_OK)
@@ -251,7 +274,7 @@ void getAddress(char* address_buffer, int size)
     strcat(address_buffer, RC_ADDRESS_BASE);
     sprintf(buffer, "%i", DEV);
     strcat(address_buffer, buffer);
-    strcat(address_buffer, RC_ADDRESS_SUFFIX);
+    strcat(address_buffer, RC_JSON_ADDRESS_SUFFIX);
 }
 
 void* send(void* params)
