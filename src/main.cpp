@@ -54,7 +54,7 @@ const char* RC_JSON_ADDRESS_SUFFIX = ":8080/CommandServer/currentJsonCommand";
 #define DRIVE_MOTOR_GPIO 31 //GP44
 #define REVERSE_ENGAGE_GPIO 32 //GP46
 #define LIGHT_GPIO 33 //GP48
-#define DEFAULT_WAIT_TIME_MS 300
+#define DEFAULT_WAIT_TIME_MS 100
 
 int main(int argc, char** argv)
 {
