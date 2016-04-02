@@ -23,7 +23,7 @@
         android:label="@string/app_name"
         android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen"
         android:largeHeap="true"
-        android:icon="@drawable/ic_launcher">
+        android:icon="@drawable/icon">
         <activity
             android:screenOrientation="landscape"
             android:name="MainActivity"

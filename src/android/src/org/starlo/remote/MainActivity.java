@@ -300,10 +300,6 @@ public class MainActivity extends Activity implements Runnable
     private byte[] loadContent(String fileName) throws IOException
     {
         boolean xmlCommand = fileName.equals("CommandServer/currentCommand");
-        if(!xmlCommand)
-        {
-            assert(fileName.equals("CommandServer/currentJsonCommand"));
-        }
 
         int accelProgress = mAccelBar.getProgress();
         int directionState = mReverseButton.isChecked() ? REVERSE: FORWARD;
