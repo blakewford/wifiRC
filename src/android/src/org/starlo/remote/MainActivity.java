@@ -10,6 +10,10 @@ import android.content.res.*;
 
 import java.io.*;
 import java.net.*;
+import java.util.Map;
+import java.util.HashMap;
+
+import com.fasterxml.jackson.databind.*;
 
 public class MainActivity extends Activity implements Runnable
 {
@@ -327,6 +331,22 @@ public class MainActivity extends Activity implements Runnable
         }
         else
         {
+            String jsonString = null;
+            ObjectMapper oMapper = new ObjectMapper();
+            try
+            {
+                Command command =
+                    new Command(
+                        direction,
+                        COMMAND_NAMES[stringIndex],
+                        accelProgress,
+                        mLightsButton.isChecked(),
+                        directionState == REVERSE ? 1: 0
+                    );
+                jsonString = oMapper.writeValueAsString(command);
+            }catch(Exception e)
+            {
+            }
             output.write(JSON_HEADER.getBytes());
             output.write(buildJsonTerminal("direction", Long.valueOf(direction).toString(), false));
             output.write(buildJsonTerminal("directionString", COMMAND_NAMES[stringIndex], false));
@@ -369,6 +389,23 @@ public class MainActivity extends Activity implements Runnable
             }
 
             new ResetTask().execute(mDefaultDeviceName);
+        }
+    }
+
+    private class Command
+    {
+        public String name;
+        public Map<String, Object> parameters;
+
+        public Command(long direction, String directionString, long progress, boolean lights, long gear)
+        {
+            name = "_wifiRC.set";
+            parameters = new HashMap<String, Object>();
+            parameters.put("_direction", Long.valueOf(direction));
+            parameters.put("_directionString", directionString);
+            parameters.put("_magnitude", Long.valueOf(progress));
+            parameters.put("_lights", Long.valueOf(lights ? 1: 0));
+            parameters.put("_gear", Long.valueOf(gear));
         }
     }
 
