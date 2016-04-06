@@ -56,6 +56,8 @@ const char* RC_JSON_ADDRESS_SUFFIX = ":8080/CommandServer/currentJsonCommand";
 #define LIGHT_GPIO 33 //GP48
 #define DEFAULT_WAIT_TIME_MS 100
 
+extern "C" void parse(const char* json);
+
 int main(int argc, char** argv)
 {
     curl_global_init(CURL_GLOBAL_DEFAULT);
@@ -161,6 +163,8 @@ size_t curl_write_function(void* buffer, size_t size, size_t nmemb, int* p)
 
 size_t curl_write_json_function(void* buffer, size_t size, size_t nmemb, int* p)
 {
+    //parse((char*)buffer);
+
     static const char* WEAVE_DEVICE = "_wifiRC";
     static const char* SET_COMMAND = "set";
     static const char* NAME_STRING = " \"name\"";
