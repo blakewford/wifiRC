@@ -343,17 +343,10 @@ public class MainActivity extends Activity implements Runnable
                         mLightsButton.isChecked(),
                         directionState == REVERSE ? 1: 0
                     );
-                jsonString = oMapper.writeValueAsString(command);
+                output.write(oMapper.writeValueAsString(command).getBytes());
             }catch(Exception e)
             {
             }
-            output.write(JSON_HEADER.getBytes());
-            output.write(buildJsonTerminal("direction", Long.valueOf(direction).toString(), false));
-            output.write(buildJsonTerminal("directionString", COMMAND_NAMES[stringIndex], false));
-            output.write(buildJsonTerminal("magnitude", Long.valueOf(accelProgress).toString(), false));
-            output.write(buildJsonTerminal("lights", Long.valueOf(mLightsButton.isChecked() ? 1: 0).toString(), false));
-            output.write(buildJsonTerminal("gear", Long.valueOf(directionState == REVERSE ? 1: 0).toString(), true));
-            output.write(JSON_FOOTER.getBytes());
         }
         output.flush();
 

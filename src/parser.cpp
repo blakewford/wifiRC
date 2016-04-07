@@ -1,12 +1,11 @@
+#include "parser.h"
+
 #include <stack>
 #include <vector>
 #include <string>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <assert.h>
-
-#define MAX_BUFFER_SIZE 64
 
 enum object_type
 {
@@ -75,94 +74,61 @@ class container_object: public object
         std::vector<object*> m_objects;
 };
 
-class command
+void command::populate(container_object* obj)
 {
-    public:
-        command(){ memset(m_name, '\0', MAX_BUFFER_SIZE); }
-        void populate(container_object* obj)
+    for(int i = 0; i < obj->child_count(); i++)
+    {
+        object* child = obj->at(i);
+        switch(child->get_type())
         {
-            for(int i = 0; i < obj->child_count(); i++)
-            {
-                object* child = obj->at(i);
-                switch(child->get_type())
-                {
-                    case STRING:
-                        assert(!strcmp("name", child->get_name()));
-                        memcpy(m_name, child->get_string_value(), strlen(child->get_string_value()));
-                        break;
+            case STRING:
+                assert(!strcmp("name", child->get_name()));
+                memcpy(m_name, child->get_string_value(), strlen(child->get_string_value()));
+                break;
                     case CONTAINER:
-                        assert(!strcmp("parameters", child->get_name()));
-                        container_object* container = (container_object*)child;
-                        populate_specific(container);
-                        break;
-                }
-                delete child;
-            }
+                assert(!strcmp("parameters", child->get_name()));
+                container_object* container = (container_object*)child;
+                populate_specific(container);
+                break;
         }
-        const char* get_name(){ return m_name; }
-        virtual void populate_specific(container_object* obj) = 0;
+        delete child;
+    }
+}
 
-    private:
-        char m_name[MAX_BUFFER_SIZE];
-};
-
-class set_command: public command
+void set_command::populate_specific(container_object* obj)
 {
-    public:
-        set_command():
-            m_direction(0),
-            m_gear(0),
-            m_magnitude(0),
-            m_lights(false)
-        { memset(m_direction_string, '\0', MAX_BUFFER_SIZE); }
-        void populate_specific(container_object* obj)
+    assert(!strcmp("parameters", obj->get_name()));
+    container_object* container = (container_object*)obj;
+    for(int i = 0; i < container->child_count(); i++)
+    {
+        object* param = container->at(i);
+        const char* name = param->get_name();
+        if(!strcmp(name, "_direction"))
         {
-            assert(!strcmp("parameters", obj->get_name()));
-            container_object* container = (container_object*)obj;
-            for(int i = 0; i < container->child_count(); i++)
-            {
-                object* param = container->at(i);
-                const char* name = param->get_name();
-                if(!strcmp(name, "_direction"))
-                {
-                    m_direction = param->get_long_value();
-                }
-                else if(!strcmp(name, "_gear"))
-                {
-                    m_gear = param->get_long_value();
-                }
-                else if(!strcmp(name, "_magnitude"))
-                {
-                    m_magnitude = param->get_long_value();
-                }
-                else if(!strcmp(name, "_directionString"))
-                {
-                    memcpy(m_direction_string, param->get_string_value(), strlen(param->get_string_value()));
-                }
-                else if(!strcmp(name, "_lights"))
-                {
-                    m_lights = param->get_long_value();
-                }
-                else
-                {
-                    assert(0);
-                }
-            }
+            m_direction = param->get_long_value();
         }
-
-        long get_direction(){ return m_direction; };
-        long get_gear(){ return m_direction; };
-        long get_magnitude(){ return m_direction; };
-        const char* get_direction_string(){ return m_direction_string; };
-        bool get_lights(){ return m_lights; };
-
-    private:
-        long m_direction;
-        long m_gear;
-        long m_magnitude;
-        char m_direction_string[MAX_BUFFER_SIZE];
-        bool m_lights;
-};
+        else if(!strcmp(name, "_gear"))
+        {
+            m_gear = param->get_long_value();
+        }
+        else if(!strcmp(name, "_magnitude"))
+        {
+            m_magnitude = param->get_long_value();
+        }
+        else if(!strcmp(name, "_directionString"))
+        {
+            memcpy(m_direction_string, param->get_string_value(), strlen(param->get_string_value()));
+        }
+        else if(!strcmp(name, "_lights"))
+        {
+            m_lights = param->get_long_value();
+        }
+        else
+        {
+            assert(0);
+        }
+    }
+}
 
 enum parse_state
 {
@@ -173,12 +139,11 @@ enum parse_state
 
 extern "C" {
 
-void parse(const char* json)
+void parse(const char* json, command* wifiRC_command)
 {
     int i = 0;
     object* temp = NULL;
     char current = json[i];
-    set_command wifiRC_command;
     parse_state state = UNKNOWN;
     char attribute[MAX_BUFFER_SIZE];
     std::stack<container_object*> object_stack;
@@ -216,7 +181,7 @@ void parse(const char* json)
             else
             {
                 //Top level Weave object
-                wifiRC_command.populate(obj);
+                wifiRC_command->populate(obj);
             }
         }
         else if(current == ':')

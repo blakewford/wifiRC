@@ -1,3 +1,5 @@
+#include "parser.h"
+
 #ifndef DESKTOP
 #include "mraa.h"
 #endif
@@ -56,7 +58,7 @@ const char* RC_JSON_ADDRESS_SUFFIX = ":8080/CommandServer/currentJsonCommand";
 #define LIGHT_GPIO 33 //GP48
 #define DEFAULT_WAIT_TIME_MS 100
 
-extern "C" void parse(const char* json);
+extern "C" void parse(const char* json, command* wifiRC_command);
 
 int main(int argc, char** argv)
 {
@@ -163,82 +165,13 @@ size_t curl_write_function(void* buffer, size_t size, size_t nmemb, int* p)
 
 size_t curl_write_json_function(void* buffer, size_t size, size_t nmemb, int* p)
 {
-    //parse((char*)buffer);
+    set_command command;
+    parse((char*)buffer, &command);
 
-    static const char* WEAVE_DEVICE = "_wifiRC";
-    static const char* SET_COMMAND = "set";
-    static const char* NAME_STRING = " \"name\"";
-    static const char* PARAMETER_STRING = " \"parameters\"";
-    const char* weave_command[] = {NAME_STRING, PARAMETER_STRING};
-
-    char line[64];
-    char name[64];
-    char value[64];
-    char command[64];
-    char application[64];
-    char* command_start = NULL;
-    char* parse = strstr((char*)buffer, "{")+strlen("{")+1;
-
-    int length = 0;
-    int data_start = 0;
-    for(int i = 0; i < 2; i++)
-    {
-        memset(line, '\0', 64);
-        memset(name, '\0', 64);
-        memset(value, '\0', 64);
-        length = strchr(parse, '\n')-parse;
-        memcpy(line, parse, length);
-        data_start = strchr(line, ':')-line;
-        memcpy(name, line, data_start);
-        assert(!strcmp(weave_command[i], name));
-        if(!strcmp(name, NAME_STRING))
-        {
-            memset(command, '\0', 64);
-            memset(application, '\0', 64);
-            memcpy(value, line+data_start+3, length-data_start-5);
-            command_start = strchr(value, '.');
-            memcpy(application, value, command_start-value);
-            assert(!strcmp(application, WEAVE_DEVICE));
-            memcpy(command, command_start+1, strlen(value)-strlen(application)-1);
-            assert(!strcmp(command, SET_COMMAND));
-        }
-        if(!strcmp(name, PARAMETER_STRING))
-        {
-            //Do nothing!
-        }
-        parse+=length+1;
-    }
-
-    bool isGearTerminal = false;
-    while(strcmp(parse, " }\n}\n"))
-    {
-        memset(line, '\0', 64);
-        memset(name, '\0', 64);
-        memset(value, '\0', 64);
-        length = strchr(parse, '\n')-parse;
-        memcpy(line, parse, length);
-        data_start = strchr(line, ':')-line;
-        memcpy(name, line+2, data_start-3);
-        isGearTerminal = !strcmp(name, gearTerminal);
-        memcpy(value, line+data_start+3, length-data_start-(isGearTerminal ? 4: 5));
-        if(!strcmp(name, directionTerminal))
-        {
-            *p = atoi(value);
-        }
-        if(!strcmp(name, magnitudeTerminal))
-        {
-            gMagnitude = atoi(value);
-        }
-        if(!strcmp(name, lightsTerminal))
-        {
-            gLights = atoi(value);
-        }
-        if(!strcmp(name, gearTerminal))
-        {
-            gGear = atoi(value);
-        }
-        parse+=length+1;
-    }
+    *p = command.get_direction();
+    gMagnitude = command.get_magnitude();
+    gLights = command.get_lights();
+    gGear = command.get_gear();
 
     return size*nmemb;
 }
