@@ -29,10 +29,6 @@ public class MainActivity extends Activity implements Runnable
 
     public static final String COMMAND_NAMES[] = {"IDLE","FORWARD","REVERSE","INVALID","LEFT","INVALID","INVALID","INVALID","RIGHT"};
 
-    private static final String HEADER =
-        "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<Response>\n";
-    private static final String FOOTER = "</Response>";
-
     private static final String JSON_HEADER = "{\n \"name\": \"_wifiRC.set\",\n \"parameters\": {\n";
     private static final String JSON_FOOTER = " }\n}\n";
 
@@ -256,25 +252,6 @@ public class MainActivity extends Activity implements Runnable
         }
     }
 
-    private byte[] buildTerminal(String name, String value)
-    {
-        StringBuilder builder = new StringBuilder();
-        builder.append("<Terminal><Name>");
-        builder.append(name);
-        builder.append("</Name><Value>");
-        builder.append(value);
-        builder.append("</Value></Terminal>\n");
-        byte[] bytes = new byte[0];
-        try
-        {
-            bytes = builder.toString().getBytes("UTF-8");
-        }catch(Exception e)
-        {
-        }
-
-        return bytes;
-    }
-
     private byte[] buildJsonTerminal(String name, String value, boolean last)
     {
         StringBuilder builder = new StringBuilder();
@@ -303,8 +280,6 @@ public class MainActivity extends Activity implements Runnable
 
     private byte[] loadContent(String fileName) throws IOException
     {
-        boolean xmlCommand = fileName.equals("CommandServer/currentCommand");
-
         int accelProgress = mAccelBar.getProgress();
         int directionState = mReverseButton.isChecked() ? REVERSE: FORWARD;
         int direction = accelProgress > ACCELERATOR_DEFAULT ? directionState: IDLE;
@@ -318,35 +293,21 @@ public class MainActivity extends Activity implements Runnable
         if(stringIndex > 3) stringIndex &= 0xC;
 
         ByteArrayOutputStream output = new ByteArrayOutputStream();
-
-        if(xmlCommand)
+        String jsonString = null;
+        ObjectMapper oMapper = new ObjectMapper();
+        try
         {
-            output.write(HEADER.getBytes());
-            output.write(buildTerminal("direction", Long.valueOf(direction).toString()));
-            output.write(buildTerminal("directionString", COMMAND_NAMES[stringIndex]));
-            output.write(buildTerminal("magnitude", Long.valueOf(accelProgress).toString()));
-            output.write(buildTerminal("lights", Long.valueOf(mLightsButton.isChecked() ? 1: 0).toString()));
-            output.write(buildTerminal("gear", Long.valueOf(directionState == REVERSE ? 1: 0).toString()));
-            output.write(FOOTER.getBytes());
-        }
-        else
+            Command command =
+                new Command(
+                    direction,
+                    COMMAND_NAMES[stringIndex],
+                    accelProgress,
+                    mLightsButton.isChecked(),
+                    directionState == REVERSE ? 1: 0
+                );
+            output.write(oMapper.writeValueAsString(command).getBytes());
+        }catch(Exception e)
         {
-            String jsonString = null;
-            ObjectMapper oMapper = new ObjectMapper();
-            try
-            {
-                Command command =
-                    new Command(
-                        direction,
-                        COMMAND_NAMES[stringIndex],
-                        accelProgress,
-                        mLightsButton.isChecked(),
-                        directionState == REVERSE ? 1: 0
-                    );
-                output.write(oMapper.writeValueAsString(command).getBytes());
-            }catch(Exception e)
-            {
-            }
         }
         output.flush();
 

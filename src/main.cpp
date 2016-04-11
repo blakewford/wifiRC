@@ -50,7 +50,6 @@ int gGear = 0;
 bool gKeepGoing = false;
 
 const char* RC_ADDRESS_BASE = "http://192.168.1.";
-const char* RC_ADDRESS_SUFFIX = ":8080/CommandServer/currentCommand";
 const char* RC_JSON_ADDRESS_SUFFIX = ":8080/CommandServer/currentJsonCommand";
 
 #define DRIVE_MOTOR_GPIO 31 //GP44
@@ -109,58 +108,6 @@ int main(int argc, char** argv)
 
     return 0;
 
-}
-
-static const char* directionTerminal = "direction";
-static const char* magnitudeTerminal = "magnitude";
-static const char* lightsTerminal = "lights";
-static const char* gearTerminal = "gear";
-size_t curl_write_function(void* buffer, size_t size, size_t nmemb, int* p)
-{
-    static const char* NAME_STRING = "Name";
-    static const char* VALUE_STRING = "Value";
-    static const char* RESPONSE_STRING = "Response";
-    static const char* TERMINAL_STRING = "Terminal";
-
-    char test[64];
-    char name[64];
-    char value[64];
-    char* parse = strstr((char*)buffer, RESPONSE_STRING)+strlen(RESPONSE_STRING)+1;
-    memset(test, '\0', 64);
-    memcpy(test, parse+3, strlen(RESPONSE_STRING));
-    while(strcmp(test, RESPONSE_STRING))
-    {
-        parse = strstr(parse, TERMINAL_STRING)+strlen(TERMINAL_STRING)+1;
-        parse = strstr(parse, NAME_STRING)+strlen(NAME_STRING)+1;
-        int length = strchr(parse, '<')-parse;
-        memset(name, '\0', 64);
-        memcpy(name, parse, length);
-        parse = strstr(parse, VALUE_STRING)+strlen(VALUE_STRING)+1;
-        length = strchr(parse, '<')-parse;
-        memset(value, '\0', 64);
-        memcpy(value, parse, length);
-        parse = strstr(parse, TERMINAL_STRING)+strlen(TERMINAL_STRING)+1;
-        memset(test, '\0', 64);
-        memcpy(test, parse+3, strlen(RESPONSE_STRING));
-        if(!strcmp(name, directionTerminal))
-        {
-            *p = atoi(value);
-        }
-        if(!strcmp(name, magnitudeTerminal))
-        {
-            gMagnitude = atoi(value);
-        }
-        if(!strcmp(name, lightsTerminal))
-        {
-            gLights = atoi(value);
-        }
-        if(!strcmp(name, gearTerminal))
-        {
-            gGear = atoi(value);
-        }
-    }
-
-    return size*nmemb;
 }
 
 size_t curl_write_json_function(void* buffer, size_t size, size_t nmemb, int* p)
