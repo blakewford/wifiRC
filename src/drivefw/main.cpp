@@ -29,8 +29,6 @@ enum COMMAND
 };
 const char* COMMAND_NAMES[] = {"IDLE","FORWARD","REVERSE","INVALID","LEFT","INVALID","INVALID","INVALID","RIGHT"};
 
-const char* CONTENT_TYPES[] = {"PLATFORM"};
-
 struct context
 {
 #ifndef DESKTOP
@@ -75,15 +73,6 @@ int main(int argc, char** argv)
     if(light_context == NULL || mraa_gpio_dir(light_context, MRAA_GPIO_OUT) != MRAA_SUCCESS) exit(1);
     mraa_gpio_write(light_context, false);
 
-#endif
-
-    char platform_name[64];
-    memset(platform_name, '\0', 64);
-    const char* type = CONTENT_TYPES[0];
-#ifndef DESKTOP
-    sprintf(platform_name, "%s:%s", type, mraa_get_platform_name());
-#else
-    sprintf(platform_name, "%s:%s", type, "Desktop");
 #endif
 
     gKeepGoing = true;
