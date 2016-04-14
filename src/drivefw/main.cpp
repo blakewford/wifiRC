@@ -1,3 +1,4 @@
+/*
 #include "parser.h"
 
 #ifndef DESKTOP
@@ -210,3 +211,4 @@ void loop(context& gpio_context)
 #endif
     std::this_thread::sleep_for(std::chrono::milliseconds(gMagnitude > 0 ? gMagnitude: DEFAULT_WAIT_TIME_MS));
 }
+*/

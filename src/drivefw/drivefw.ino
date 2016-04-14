@@ -76,12 +76,12 @@ void http_request(const char* request)
     client.stop();
   }
 }
-
-void loop() {
+*/
+//void loop() {
 //    http_request("POST /CommandServer/currentJsonCommand HTTP/1.1\nHost: 192.168.1.6:8080\nAccept: */*\nContent-Length: 15\nContent-Type: application/x-www-form-urlencoded\nConnection: close\n\nPLATFORM:EDISON\n");
 //    http_request("GET /CommandServer/currentJsonCommand HTTP/1.1\nHost: 192.168.1.6:8080\nAccept: */*\n");
-}
-*/
+//}
+
 
 
 
