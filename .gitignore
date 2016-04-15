@@ -3,4 +3,4 @@ src/android/local.properties
 src/android/bin
 src/android/gen
 src/android/wifiRC.keystore
-src/drivefw/drivefw.cpp
+src/drivefw/main.cpp

@@ -31,17 +31,17 @@ void setup()
 void loop()
 {
 #ifndef DESKTOP
-    if(digitalRead(LIGHTS_CONTROL_PIN) == HIGH) digitalWrite(LIGHTS_ENABLE_PIN, HIGH);
-    else digitalWrite(LIGHTS_ENABLE_PIN, LOW);
+    digitalWrite(LIGHTS_ENABLE_PIN, HIGH);
+    digitalWrite(LIGHTS_ENABLE_PIN, LOW);
   
-    if(digitalRead(REVERSE_CONTROL_PIN) == HIGH) digitalWrite(REVERSE_ENGAGE_PIN, HIGH);
-    else digitalWrite(REVERSE_ENGAGE_PIN, LOW);
+    digitalWrite(REVERSE_ENGAGE_PIN, HIGH);
+    digitalWrite(REVERSE_ENGAGE_PIN, LOW);
 
-    if(digitalRead(REVERSE_CONTROL_PIN) == HIGH) digitalWrite(RIGHT_ENGAGE_PIN, HIGH);
-    else digitalWrite(RIGHT_ENGAGE_PIN, LOW);
+    digitalWrite(RIGHT_ENGAGE_PIN, HIGH);
+    digitalWrite(RIGHT_ENGAGE_PIN, LOW);
 
-    if(digitalRead(DRIVE_CONTROL_PIN) == HIGH) digitalWrite(DRIVE_MOTOR_PIN, HIGH);
-    else digitalWrite(DRIVE_MOTOR_PIN, LOW);
+    digitalWrite(DRIVE_MOTOR_PIN, HIGH);
+    digitalWrite(DRIVE_MOTOR_PIN, LOW);
 
     delay(10);
 #endif
