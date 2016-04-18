@@ -1,6 +1,6 @@
 DEVICE_NUMBER=6
 
-wifiRC: main.o parser.o
+wifiRC: main.o parser.o platform.o
 	g++ -pthread $? -o wifiRC -lcurl
 
 main.cpp: drivefw.ino
@@ -11,6 +11,9 @@ main.o: main.cpp
 
 parser.o: parser.cpp
 	g++ -c $< -o $@
+
+platform.o: platform.cpp
+	g++ -DDESKTOP -std=c++11 -c $< -o $@
 
 clean:
 	-@rm *.o wifiRC main.cpp
