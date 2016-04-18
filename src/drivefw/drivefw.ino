@@ -1,21 +1,10 @@
 #include "parser.h"
+#include "platform.h"
 
-#include <chrono>
-#include <thread>
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
 #include <pthread.h>
-#include <curl/curl.h>
-
-#ifndef DESKTOP
-#include <SPI.h>
-#include <WiFi.h>
-
-WiFiClient client;
-int status = WL_IDLE_STATUS;
-IPAddress server(192,168,1,6);
-#endif
 
 #define RIGHT_ENGAGE_PIN 2
 #define STEERING_ENGAGE_PIN 4
@@ -61,19 +50,7 @@ extern "C" void parse(const char* json, command* wifiRC_command);
 
 void setup()
 {
-#ifndef DESKTOP
-    pinMode(LIGHTS_ENABLE_PIN, OUTPUT);
-    pinMode(DRIVE_MOTOR_PIN, OUTPUT);
-    pinMode(REVERSE_ENGAGE_PIN, OUTPUT);
-    pinMode(RIGHT_ENGAGE_PIN, OUTPUT);
-
-    Serial.begin(9600);
-    while(status != WL_CONNECTED)
-    {
-        status = WiFi.begin(ssid, pass);
-        delay(200);
-    }
-#endif
+    platform::setup();
 
     char platform_name[64];
     memset(platform_name, '\0', 64);
@@ -83,8 +60,6 @@ void setup()
 #else
     sprintf(platform_name, "%s:%s", type, "Desktop");
 #endif
-
-    curl_global_init(CURL_GLOBAL_DEFAULT);
 
     gKeepGoing = true;
     char* delimiter = strchr(platform_name, ':');
