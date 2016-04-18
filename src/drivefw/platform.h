@@ -1,15 +1,9 @@
 #ifndef PLATFORM_H
 #define PLATFORM_H
 
-#ifndef DESKTOP
-#include "Arduino.h"
-#include <SPI.h>
-#include <WiFi.h>
-#define DEV 6
-#else
-#include <chrono>
-#include <thread>
-#include <curl/curl.h>
+#ifdef DESKTOP
+void delay(int ms);
+void digitalWrite(int, int);
 #endif
 
 #define RIGHT_ENGAGE_PIN 2
@@ -18,11 +12,27 @@
 #define DRIVE_MOTOR_PIN 8
 #define LIGHTS_ENABLE_PIN 10
 
+enum COMMAND
+{
+    IDLE = 0,
+    FORWARD = 1,
+    REVERSE = 2,
+    LEFT = 4,
+    RIGHT = 8
+};
+
+extern int gMagnitude;
+extern bool gLights;
+extern int gGear;
+
 extern "C"
 {
     namespace platform
     {
         void setup();
+        const char* getPlatformName();
+        void send();
+        int getCommand();
     }
 }
 

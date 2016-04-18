@@ -1,9 +1,7 @@
-#include "parser.h"
 #include "platform.h"
 
 #include <stdio.h>
 #include <string.h>
-#include <assert.h>
 #include <pthread.h>
 
 enum GEAR
@@ -13,20 +11,9 @@ enum GEAR
 };
 const char* GEAR_NAMES[] = {"DRIVE","REVERSE"};
 
-enum COMMAND
-{
-    IDLE = 0,
-    FORWARD = 1,
-    REVERSE = 2,
-    LEFT = 4,
-    RIGHT = 8
-};
 const char* COMMAND_NAMES[] = {"IDLE","FORWARD","REVERSE","INVALID","LEFT","INVALID","INVALID","INVALID","RIGHT"};
-
 const char* CONTENT_TYPES[] = {"PLATFORM"};
 
-int getCommand();
-void getAddress(char* buffer, int size);
 void* send(void* params);
 
 int gMagnitude = 0;
@@ -35,12 +22,7 @@ int gGear = 0;
 bool gKeepGoing = false;
 pthread_t gSendThread;
 
-const char* RC_ADDRESS_BASE = "http://192.168.1.";
-const char* RC_JSON_ADDRESS_SUFFIX = ":8080/CommandServer/currentJsonCommand";
-
 #define DEFAULT_WAIT_TIME_MS 100
-
-extern "C" void parse(const char* json, command* wifiRC_command);
 
 void setup()
 {
@@ -49,11 +31,7 @@ void setup()
     char platform_name[64];
     memset(platform_name, '\0', 64);
     const char* type = CONTENT_TYPES[0];
-#ifndef DESKTOP
-    sprintf(platform_name, "%s:%s", type, "Intel Edison");
-#else
-    sprintf(platform_name, "%s:%s", type, "Desktop");
-#endif
+    sprintf(platform_name, "%s:%s", type, platform::getPlatformName());
 
     gKeepGoing = true;
     char* delimiter = strchr(platform_name, ':');
@@ -62,81 +40,11 @@ void setup()
 
 }
 
-size_t curl_write_json_function(void* buffer, size_t size, size_t nmemb, int* p)
-{
-    set_command command;
-    parse((char*)buffer, &command);
-
-    *p = command.get_direction();
-    gMagnitude = command.get_magnitude();
-    gLights = command.get_lights();
-    gGear = command.get_gear();
-
-    return size*nmemb;
-}
-
-int getCommand()
-{
-    int command = IDLE;
-/*
-    CURL* pCURL = curl_easy_init();
-    if(pCURL)
-    {
-        int temp;
-        char address_buffer[64];
-        getAddress(address_buffer, 64);
-        curl_easy_setopt(pCURL, CURLOPT_URL, address_buffer);
-        curl_easy_setopt(pCURL, CURLOPT_WRITEFUNCTION, curl_write_json_function);
-        curl_easy_setopt(pCURL, CURLOPT_WRITEDATA, &temp);
-        CURLcode result = curl_easy_perform(pCURL);
-        if(result == CURLE_OK)
-        {
-            command = temp;
-        }
-        curl_easy_cleanup(pCURL);
-    }
-*/
-//    http_request("GET /CommandServer/currentJsonCommand HTTP/1.1\nHost: 192.168.1.6:8080\nAccept: */*\n");
-
-
-    return command;
-
-}
-
-void getAddress(char* address_buffer, int size)
-{
-    assert(size == 64);
-
-//Need to do something smarter here like search for servers on the local network
-    char buffer[4];
-    memset(buffer, '\0', 4);
-    memset(address_buffer, '\0', 64);
-    strcat(address_buffer, RC_ADDRESS_BASE);
-    sprintf(buffer, "%i", DEV);
-    strcat(address_buffer, buffer);
-    strcat(address_buffer, RC_JSON_ADDRESS_SUFFIX);
-}
-
 void* send(void* params)
 {
     while(gKeepGoing)
     {
- /*
-        CURL* pCURL = curl_easy_init();
-        if(pCURL)
-        {
-            char address_buffer[64];
-            getAddress(address_buffer, 64);
-            curl_easy_setopt(pCURL, CURLOPT_URL, address_buffer);
-            curl_easy_setopt(pCURL, CURLOPT_POSTFIELDS, params);
-            CURLcode result = curl_easy_perform(pCURL);
-            if(result == CURLE_OK)
-            {
-            }
-            curl_easy_cleanup(pCURL);
-        }
-*/
-        //http_request("POST /CommandServer/currentJsonCommand HTTP/1.1\nHost: 192.168.1.6:8080\nAccept: */*\nContent-Length: 15\nContent-Type: application/x-www-form-urlencoded\nConnection: close\n\nPLATFORM:EDISON\n");
+        platform::send();
         delay(1000);
     }
 
@@ -145,7 +53,7 @@ void* send(void* params)
 
 void loop()
 {
-    int raw = getCommand();
+    int raw = platform::getCommand();
 
     int value = raw;
     if(value > 3) value &= 0xC;
@@ -178,7 +86,7 @@ int main()
 
     gKeepGoing = false;
     pthread_join(gSendThread, NULL);
-    curl_global_cleanup();
+    //curl_global_cleanup();
 
     return 0;
 }
