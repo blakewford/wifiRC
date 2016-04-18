@@ -1,5 +1,11 @@
 #include "platform.h"
 
+#ifndef DESKTOP
+WiFiClient client;
+IPAddress server(192, 168, 1, DEV);
+int status = WL_IDLE_STATUS;
+#endif
+
 namespace platform
 {
 #ifndef DESKTOP
@@ -21,6 +27,15 @@ namespace platform
     void setup()
     {
         curl_global_init(CURL_GLOBAL_DEFAULT);    
+    }
+
+    void delay(int ms)
+    {
+        std::this_thread::sleep_for(std::chrono::milliseconds(ms));
+    }
+
+    void digitalWrite(int, int)
+    {
     }
 #endif
 }

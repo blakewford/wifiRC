@@ -6,12 +6,6 @@
 #include <assert.h>
 #include <pthread.h>
 
-#define RIGHT_ENGAGE_PIN 2
-#define STEERING_ENGAGE_PIN 4
-#define REVERSE_ENGAGE_PIN 6
-#define DRIVE_MOTOR_PIN 8
-#define LIGHTS_ENABLE_PIN 10
-
 enum GEAR
 {
     D = 0,
@@ -84,6 +78,7 @@ size_t curl_write_json_function(void* buffer, size_t size, size_t nmemb, int* p)
 int getCommand()
 {
     int command = IDLE;
+/*
     CURL* pCURL = curl_easy_init();
     if(pCURL)
     {
@@ -100,6 +95,7 @@ int getCommand()
         }
         curl_easy_cleanup(pCURL);
     }
+*/
 //    http_request("GET /CommandServer/currentJsonCommand HTTP/1.1\nHost: 192.168.1.6:8080\nAccept: */*\n");
 
 
@@ -125,6 +121,7 @@ void* send(void* params)
 {
     while(gKeepGoing)
     {
+ /*
         CURL* pCURL = curl_easy_init();
         if(pCURL)
         {
@@ -139,7 +136,7 @@ void* send(void* params)
             curl_easy_cleanup(pCURL);
         }
         //http_request("POST /CommandServer/currentJsonCommand HTTP/1.1\nHost: 192.168.1.6:8080\nAccept: */*\nContent-Length: 15\nContent-Type: application/x-www-form-urlencoded\nConnection: close\n\nPLATFORM:EDISON\n");
-        std::this_thread::sleep_for(std::chrono::seconds(1));
+*/
     }
 
     return NULL;
@@ -164,18 +161,11 @@ void loop()
         default:
             break;
     }
-#ifndef DESKTOP
     digitalWrite(DRIVE_MOTOR_PIN, shouldDrive);
     digitalWrite(LIGHTS_ENABLE_PIN, gLights);
     digitalWrite(REVERSE_ENGAGE_PIN, gGear);
-#endif
 
-#ifndef DESKTOP
-    delay(DEFAULT_WAIT_TIME_MS);
-#else
-    std::this_thread::sleep_for(std::chrono::milliseconds(gMagnitude > 0 ? gMagnitude: DEFAULT_WAIT_TIME_MS));
-#endif
-
+    delay(gMagnitude > 0 ? gMagnitude: DEFAULT_WAIT_TIME_MS);
 }
 
 #ifdef DESKTOP
