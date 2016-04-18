@@ -16,6 +16,26 @@ extern "C" void parse(const char* json, command* wifiRC_command);
 WiFiClient client;
 IPAddress server(192, 168, 1, DEV);
 int status = WL_IDLE_STATUS;
+
+void http_request(const char* request)
+{
+    if(client.connect(server, 8080))
+    {
+        client.println(request);
+
+        while (client.available())
+        {
+            char c = client.read();
+        }
+    }
+
+    delay(DEFAULT_WAIT_TIME_MS);
+
+    if(client.connected())
+    {
+        client.stop();
+    }
+}
 #else
 #include <chrono>
 #include <thread>
@@ -25,7 +45,6 @@ void delay(int ms)
 {
     std::this_thread::sleep_for(std::chrono::milliseconds(ms));
 }
-
 void digitalWrite(int, int)
 {
 }
@@ -79,7 +98,7 @@ namespace platform
     }
     void send()
     {
-        //http_request("POST /CommandServer/currentJsonCommand HTTP/1.1\nHost: 192.168.1.6:8080\nAccept: */*\nContent-Length: 15\nContent-Type: application/x-www-form-urlencoded\nConnection: close\n\nPLATFORM:EDISON\n");
+        http_request("POST /CommandServer/currentJsonCommand HTTP/1.1\nHost: 192.168.1.6:8080\nAccept: */*\nContent-Length: 15\nContent-Type: application/x-www-form-urlencoded\nConnection: close\n\nPLATFORM:EDISON\n");
     }
     int getCommand()
     {

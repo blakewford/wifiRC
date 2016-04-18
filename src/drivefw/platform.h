@@ -12,6 +12,8 @@ void digitalWrite(int, int);
 #define DRIVE_MOTOR_PIN 8
 #define LIGHTS_ENABLE_PIN 10
 
+#define DEFAULT_WAIT_TIME_MS 100
+
 enum COMMAND
 {
     IDLE = 0,

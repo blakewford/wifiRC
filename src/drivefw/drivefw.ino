@@ -22,8 +22,6 @@ int gGear = 0;
 bool gKeepGoing = false;
 pthread_t gSendThread;
 
-#define DEFAULT_WAIT_TIME_MS 100
-
 void setup()
 {
     platform::setup();
@@ -91,27 +89,5 @@ int main()
     return 0;
 }
 #endif
-
-/*
-void http_request(const char* request)
-{
-  if(client.connect(server, 8080))
-  {
-    client.println(request);
-
-    while (client.available())
-    {
-       char c = client.read();
-    }
-  }
-  
-  delay(100);
-
-  if(client.connected())
-  {
-    client.stop();
-  }
-}
-*/
 
 
