@@ -14,7 +14,7 @@ const char* GEAR_NAMES[] = {"DRIVE","REVERSE"};
 const char* COMMAND_NAMES[] = {"IDLE","FORWARD","REVERSE","INVALID","LEFT","INVALID","INVALID","INVALID","RIGHT"};
 const char* CONTENT_TYPES[] = {"PLATFORM"};
 
-void* send(void* params);
+void* post(void* params);
 
 int gMagnitude = 0;
 bool gLights = false;
@@ -36,11 +36,11 @@ void setup()
     gKeepGoing = true;
     char* delimiter = strchr(platform_name, ':');
     printf("%s Wifi RC Interface\n", delimiter+1);
-    pthread_create(&gSendThread, NULL, send, platform_name);
+    pthread_create(&gSendThread, NULL, post, platform_name);
 
 }
 
-void* send(void* params)
+void* post(void* params)
 {
     while(gKeepGoing)
     {
