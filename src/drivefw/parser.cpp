@@ -1,4 +1,3 @@
-/*
 #include "parser.h"
 
 #include <stack>
@@ -262,4 +261,3 @@ void parse(const char* json, command* wifiRC_command)
 }
 
 }
-*/
