@@ -2,65 +2,16 @@
 #include "platform.h"
 #include <assert.h>
 
-#define RC_ADDRESS_BASE "http://192.168.1."
-#define RC_JSON_ADDRESS_SUFFIX ":8080/CommandServer/currentJsonCommand"
-
 extern "C" void parse(const char* json, command* wifiRC_command);
 
 #ifndef DESKTOP
-#include "Arduino.h"
-#include <SPI.h>
-#include <WiFi.h>
-#define DEV 6
-
-WiFiClient client;
-IPAddress server(192, 168, 1, DEV);
-int status = WL_IDLE_STATUS;
-
-void http_request(const char* request)
-{
-    if(client.connect(server, 8080))
-    {
-        client.println(request);
-
-        while (client.available())
-        {
-            char c = client.read();
-        }
-    }
-
-    delay(DEFAULT_WAIT_TIME_MS);
-
-    if(client.connected())
-    {
-        client.stop();
-    }
-}
+#include "edison_platform.h"
 #else
-#include <chrono>
-#include <thread>
-#include <curl/curl.h>
-
-void delay(int ms)
-{
-    std::this_thread::sleep_for(std::chrono::milliseconds(ms));
-}
-void digitalWrite(int, int)
-{
-}
-static size_t curl_write_json_function(void* buffer, size_t size, size_t nmemb, int* p)
-{
-    set_command command;
-    parse((char*)buffer, &command);
-
-    *p = command.get_direction();
-    gMagnitude = command.get_magnitude();
-    gLights = command.get_lights();
-    gGear = command.get_gear();
-
-    return size*nmemb;
-}
+#include "desktop_platform.h"
 #endif
+
+#define RC_ADDRESS_BASE "http://192.168.1."
+#define RC_JSON_ADDRESS_SUFFIX ":8080/CommandServer/currentJsonCommand"
 
 static void getAddress(char* address_buffer, int size)
 {
@@ -75,6 +26,7 @@ static void getAddress(char* address_buffer, int size)
     strcat(address_buffer, buffer);
     strcat(address_buffer, RC_JSON_ADDRESS_SUFFIX);
 }
+
 #ifndef DESKTOP
 void platform_setup()
 {
