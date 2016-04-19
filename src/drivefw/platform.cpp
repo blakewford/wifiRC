@@ -52,7 +52,7 @@ void platform_send(void* params)
 }
 int platform_getCommand()
 {
-//    http_request("GET /CommandServer/currentJsonCommand HTTP/1.1\nHost: 192.168.1.6:8080\nAccept: */*\n");
+    http_request("GET /CommandServer/currentJsonCommand HTTP/1.1\nHost: 192.168.1.6:8080\nAccept: */*\n");
     return IDLE;
 }
 void platform_cleanup()
