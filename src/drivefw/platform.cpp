@@ -35,7 +35,6 @@ void platform_setup()
     pinMode(REVERSE_ENGAGE_PIN, OUTPUT);
     pinMode(RIGHT_ENGAGE_PIN, OUTPUT);
 
-    Serial.begin(9600);
     while(status != WL_CONNECTED)
     {
         status = WiFi.begin("", "");
