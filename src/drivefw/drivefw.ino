@@ -21,20 +21,20 @@ bool gLights = false;
 int gGear = 0;
 bool gKeepGoing = false;
 pthread_t gSendThread;
+char gPlatformName[64];
 
 void setup()
 {
-    platform::setup();
+    platform_setup();
 
-    char platform_name[64];
-    memset(platform_name, '\0', 64);
+    memset(gPlatformName, '\0', 64);
     const char* type = CONTENT_TYPES[0];
-    sprintf(platform_name, "%s:%s", type, platform::getPlatformName());
+    sprintf(gPlatformName, "%s:%s", type, platform_getName());
 
     gKeepGoing = true;
-    char* delimiter = strchr(platform_name, ':');
+    char* delimiter = strchr(gPlatformName, ':');
     printf("%s Wifi RC Interface\n", delimiter+1);
-    pthread_create(&gSendThread, NULL, post, platform_name);
+    pthread_create(&gSendThread, NULL, post, gPlatformName);
 
 }
 
@@ -42,7 +42,7 @@ void* post(void* params)
 {
     while(gKeepGoing)
     {
-        platform::send();
+        platform_send(params);
         delay(1000);
     }
 
@@ -51,7 +51,7 @@ void* post(void* params)
 
 void loop()
 {
-    int raw = platform::getCommand();
+    int raw = platform_getCommand();
 
     int value = raw;
     if(value > 3) value &= 0xC;
@@ -72,6 +72,7 @@ void loop()
     digitalWrite(LIGHTS_ENABLE_PIN, gLights);
     digitalWrite(REVERSE_ENGAGE_PIN, gGear);
 
+
     delay(gMagnitude > 0 ? gMagnitude: DEFAULT_WAIT_TIME_MS);
 }
 
@@ -84,7 +85,7 @@ int main()
 
     gKeepGoing = false;
     pthread_join(gSendThread, NULL);
-    //curl_global_cleanup();
+    platform_cleanup();
 
     return 0;
 }

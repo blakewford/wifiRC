@@ -27,15 +27,10 @@ extern int gMagnitude;
 extern bool gLights;
 extern int gGear;
 
-extern "C"
-{
-    namespace platform
-    {
-        void setup();
-        const char* getPlatformName();
-        void send();
-        int getCommand();
-    }
-}
+void platform_setup();
+const char* platform_getName();
+void platform_send(void* params);
+int platform_getCommand();
+void platform_cleanup();
 
 #endif
