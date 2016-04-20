@@ -3,26 +3,27 @@
 #include <WiFi.h>
 #define DEV 6
 
-WiFiClient client;
-IPAddress server(192, 168, 1, DEV);
-int status = WL_IDLE_STATUS;
+WiFiClient gClient;
+IPAddress gServer(192, 168, 1, DEV);
+int gStatus = WL_IDLE_STATUS;
+pthread_mutex_t gHttpMutex;
 
 void http_request(const char* request)
 {
-    if(client.connect(server, 8080))
+    pthread_mutex_lock(&gHttpMutex);
+    if(gClient.connect(gServer, 8080))
     {
-        client.println(request);
+        gClient.println(request);
 
-        while (client.available())
+        while(gClient.available())
         {
-            char c = client.read();
+            char c = gClient.read();
         }
     }
 
-    delay(DEFAULT_WAIT_TIME_MS);
-
-    if(client.connected())
+    if(gClient.connected())
     {
-        client.stop();
+        gClient.stop();
     }
+    pthread_mutex_unlock(&gHttpMutex);
 }

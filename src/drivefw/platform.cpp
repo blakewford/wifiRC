@@ -30,15 +30,16 @@ static void getAddress(char* address_buffer, int size)
 #ifndef DESKTOP
 void platform_setup()
 {
+    pthread_mutex_init(&gHttpMutex, NULL);
+
     pinMode(LIGHTS_ENABLE_PIN, OUTPUT);
     pinMode(DRIVE_MOTOR_PIN, OUTPUT);
     pinMode(REVERSE_ENGAGE_PIN, OUTPUT);
     pinMode(RIGHT_ENGAGE_PIN, OUTPUT);
 
-    while(status != WL_CONNECTED)
+    while(gStatus != WL_CONNECTED)
     {
-        status = WiFi.begin("", "");
-        delay(200);
+        delay(DEFAULT_WAIT_TIME_MS);
     }
 }
 const char* platform_getName()
