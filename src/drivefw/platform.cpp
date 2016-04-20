@@ -39,6 +39,7 @@ void platform_setup()
 
     while(gStatus != WL_CONNECTED)
     {
+        gStatus = WiFi.begin("", "");
         delay(DEFAULT_WAIT_TIME_MS);
     }
 }
