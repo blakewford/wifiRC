@@ -51,13 +51,32 @@ void platform_send(void* params)
 {
     http_request("POST /CommandServer/currentJsonCommand HTTP/1.1\nHost: 192.168.1.6:8080\nAccept: */*\nContent-Length: 15\nContent-Type: application/x-www-form-urlencoded\nConnection: close\n\nPLATFORM:EDISON\n", NULL, 0);
 }
+char gJson[128];
 char gResponse[256];
 int platform_getCommand()
 {
+    memset(gJson, '\0', 128);
     memset(gResponse, '\0', 256);
     http_request("GET /CommandServer/currentJsonCommand HTTP/1.1\nHost: 192.168.1.6:8080\nAccept: */*\n", gResponse, 256);
 
-    return IDLE;
+    char* start = NULL;
+    char* length = NULL;
+    start = strchr(gResponse, '\n')+1;
+    start = strchr(start, '\n')+1;
+    length = strchr(start, ':')+1;
+    int size = atoi(length);
+    start = strchr(gResponse, '{');
+    for(int i = 0; i < size; i++)
+    {
+        gJson[i] = *start;
+        start++;
+    }
+
+    set_command command;
+    parse(start, &command);
+    
+    return command.get_direction();
+
 }
 void platform_cleanup()
 {
