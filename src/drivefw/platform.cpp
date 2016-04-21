@@ -74,6 +74,9 @@ int platform_getCommand()
 
     set_command command;
     parse(start, &command);
+    gMagnitude = command.get_magnitude();
+    gLights = command.get_lights();
+    gGear = command.get_gear();
     
     return command.get_direction();
 
