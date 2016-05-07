@@ -4,6 +4,9 @@
 #ifdef DESKTOP
 void delay(int ms);
 void digitalWrite(int, int);
+#define DEFAULT_WAIT_TIME_MS 100
+#else
+#define DEFAULT_WAIT_TIME_MS 500
 #endif
 
 #define RIGHT_ENGAGE_PIN 2
@@ -11,8 +14,6 @@ void digitalWrite(int, int);
 #define REVERSE_ENGAGE_PIN 6
 #define DRIVE_MOTOR_PIN 8
 #define LIGHTS_ENABLE_PIN 10
-
-#define DEFAULT_WAIT_TIME_MS 100
 
 enum COMMAND
 {
